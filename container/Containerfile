@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Apache-2.0
+
+FROM quay.io/fedora/fedora-minimal AS builder
+
+# Packaged dependencies
+RUN microdnf install -y \
+    cargo \
+    dnf-plugins-core \
+    git \
+    make \
+    rust
+
+# build the duplicate-eraser
+RUN git clone https://github.com/toshisasaki/duplicate-eraser /src/duplicate-eraser
+WORKDIR /src/duplicate-eraser
+RUN ls -la && cargo build --release
+
+FROM quay.io/fedora/fedora-minimal:latest
+
+# now assemble a release docker image using a fedora minimal base image
+FROM quay.io/fedora/fedora-minimal
+ARG VERSION=latest
+LABEL org.opencontainers.image.authors="Anderson Toshiyuki Sasaki <11450334+toshisasaki@users.noreply.github.com>"
+LABEL org.opencontainers.image.version="$VERSION"
+LABEL org.opencontainers.image.title="duplicate-eraser"
+LABEL org.opencontainers.image.description="Remove or move duplicates"
+LABEL org.opencontainers.image.url="https://github.com/toshisasaki/duplicate-eraser"
+LABEL org.opencontainers.image.source="https://github.com/toshisasaki/duplicate-eraser"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.vendor="Anderson Toshiyuki Sasaki"
+
+# these labels are set in the fedora base image and should be overwritten
+LABEL name="duplicate-eraser"
+LABEL version="$VERSION"
+LABEL license="Apache-2.0"
+LABEL vendor="Anderson Toshiyuki Sasaki"
+
+# now copy the duplicate-eraser from the builder
+COPY --from=builder /src/duplicate-eraser/target/release/duplicate-eraser /bin/duplicate-eraser
