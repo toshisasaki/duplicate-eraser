@@ -1,0 +1,12 @@
+[package]
+name = "duplicate-eraser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] } # For serialization/deserialization
+serde_json = "1.0"         # For JSON handling
+clap = { version = "4.0", features = ["derive"] }  # For CLI argument parsing
+
+[profile.release]
+opt-level = 3
